@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Udyam Status Checker & Certificate Generator | MSME Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --saffron: #FF6B00;
+    --saffron-light: #FF8C33;
+    --saffron-pale: #FFF3E8;
+    --navy: #0A1F44;
+    --navy-mid: #1A3A6B;
+    --navy-light: #2D5A9E;
+    --green: #128807;
+    --green-light: #E8F5E2;
+    --white: #FFFFFF;
+    --off-white: #F8F9FC;
+    --gray-light: #EEF1F7;
+    --gray: #8A94A6;
+    --gray-dark: #4A5568;
+    --red: #D32F2F;
+    --gold: #F5A623;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--navy);
+    min-height: 100vh;
+  }
+
+  /* ===== TOP TRICOLOR STRIP ===== */
+  .tricolor-strip {
+    height: 5px;
+    background: linear-gradient(to right, #FF6B00 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #128807 66.66%);
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #1E4A8C 100%);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ashoka-wheel {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .logo-text h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.1;
+    letter-spacing: 0.3px;
+  }
+
+  .logo-text p {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.65);
+    font-weight: 400;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .header-badge {
+    background: var(--saffron);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ===== HERO BAND ===== */
+  .hero-band {
+    background: linear-gradient(to right, var(--saffron-pale), #FFF8F0, #F0F4FF);
+    border-bottom: 2px solid #FFD4A8;
+    padding: 18px 20px;
+    text-align: center;
+  }
+
+  .hero-band h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  .hero-band h2 span { color: var(--saffron); }
+
+  .hero-band p {
+    font-size: 0.82rem;
+    color: var(--gray-dark);
+    margin-top: 5px;
+  }
+
+  .trust-chips {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .trust-chip {
+    background: white;
+    border: 1px solid #D8E2F0;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.72rem;
+    color: var(--navy-mid);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .trust-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* ===== STEP INDICATOR ===== */
+  .steps-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 24px;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+
+  .step-num {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gray-light);
+    color: var(--gray);
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    border: 2px solid var(--gray-light);
+  }
+
+  .step.active .step-num {
+    background: var(--saffron);
+    color: white;
+    border-color: var(--saffron);
+    box-shadow: 0 0 0 4px rgba(255,107,0,0.15);
+  }
+
+  .step.done .step-num {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+  }
+
+  .step-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .step.active .step-label { color: var(--saffron); }
+  .step.done .step-label { color: var(--green); }
+
+  .step-line {
+    width: 60px;
+    height: 2px;
+    background: var(--gray-light);
+    margin-bottom: 18px;
+    transition: background 0.3s;
+  }
+
+  .step-line.done { background: var(--green); }
+
+  @media (max-width: 480px) {
+    .step-line { width: 30px; }
+    .step-label { font-size: 0.58rem; }
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 20px rgba(10,31,68,0.07);
+    padding: 28px 28px;
+    margin-bottom: 20px;
+    border: 1px solid #E8EEF8;
+    display: none;
+  }
+
+  .card.visible { display: block; }
+
+  .card-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .icon {
+    width: 32px;
+    height: 32px;
+    background: var(--saffron-pale);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .card-subtitle {
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-bottom: 22px;
+    margin-left: 40px;
+  }
+
+  /* ===== FORM FIELDS ===== */
+  .field-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--navy-mid);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  label .req { color: var(--red); margin-left: 2px; }
+
+  label .hint {
+    font-weight: 400;
+    color: var(--gray);
+    font-size: 0.72rem;
+    margin-left: 6px;
+  }
+
+  input[type="text"], input[type="tel"], input[type="email"], select {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 1.5px solid #D0D8EC;
+    border-radius: 10px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--navy);
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    letter-spacing: 0.5px;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--saffron);
+    box-shadow: 0 0 0 3px rgba(255,107,0,0.1);
+  }
+
+  input.error { border-color: var(--red); }
+  input.success { border-color: var(--green); }
+
+  input::placeholder { color: #B0BAD0; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .field-row { grid-template-columns: 1fr; }
+    .card { padding: 20px 16px; }
+  }
+
+  .field-note {
+    font-size: 0.7rem;
+    color: var(--gray);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ===== OTP SECTION ===== */
+  .otp-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .otp-row .field-group { flex: 1; margin-bottom: 0; }
+
+  .otp-send-btn {
+    height: 48px;
+    padding: 0 18px;
+    background: var(--navy-mid);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .otp-send-btn:hover { background: var(--navy); }
+  .otp-send-btn:disabled { background: var(--gray); cursor: not-allowed; }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, var(--saffron) 0%, #FF8C00 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 15px rgba(255,107,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255,107,0,0.45);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { background: var(--gray); box-shadow: none; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%;
+    height: 48px;
+    background: white;
+    color: var(--navy-mid);
+    border: 1.5px solid #D0D8EC;
+    border-radius: 12px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-secondary:hover { border-color: var(--saffron); color: var(--saffron); }
+
+  .btn-green {
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, #128807, #1DAA0A);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(18,136,7,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(18,136,7,0.4); }
+
+  /* ===== LOADING ===== */
+  .loading-overlay {
+    display: none;
+    text-align: center;
+    padding: 30px 0;
+  }
+
+  .loader-ring {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--gray-light);
+    border-top-color: var(--saffron);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay p {
+    font-size: 0.85rem;
+    color: var(--gray-dark);
+    font-weight: 500;
+  }
+
+  /* ===== STATUS RESULT ===== */
+  .status-banner {
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .status-banner.active {
+    background: var(--green-light);
+    border: 1.5px solid #A8D8A1;
+  }
+
+  .status-banner.inactive {
+    background: #FEF2F2;
+    border: 1.5px solid #FECACA;
+  }
+
+  .status-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .status-banner.active .status-icon { background: #C8EDCA; }
+  .status-banner.inactive .status-icon { background: #FECACA; }
+
+  .status-text h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .status-text p { font-size: 0.78rem; color: var(--gray-dark); margin-top: 2px; }
+
+  .data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 560px) { .data-grid { grid-template-columns: 1fr; } }
+
+  .data-item {
+    background: var(--off-white);
+    border: 1px solid #E8EEF8;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .data-item .di-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 4px;
+  }
+
+  .data-item .di-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+
+  .data-item .di-value.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+  }
+
+  .badge-micro { background: #EEF2FF; color: #3730A3; }
+  .badge-small { background: #FEF3C7; color: #92400E; }
+  .badge-medium { background: #D1FAE5; color: #065F46; }
+  .badge-active { background: var(--green-light); color: var(--green); }
+
+  .data-item.full-width { grid-column: 1 / -1; }
+
+  /* ===== PAYMENT GATE ===== */
+  .payment-gate {
+    background: linear-gradient(135deg, #FFF8F0, #F0F4FF);
+    border: 1.5px solid #FFD4A8;
+    border-radius: 14px;
+    padding: 22px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .payment-gate h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .price-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .price-main {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--saffron);
+  }
+
+  .price-cut {
+    font-size: 1rem;
+    color: var(--gray);
+    text-decoration: line-through;
+  }
+
+  .price-save {
+    background: var(--green);
+    color: white;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .payment-features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+  }
+
+  .pf-item {
+    font-size: 0.73rem;
+    color: var(--gray-dark);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pf-item span { color: var(--green); font-size: 0.9rem; }
+
+  .payment-methods {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .pm-badge {
+    background: white;
+    border: 1px solid #D0D8EC;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--navy-mid);
+  }
+
+  /* ===== CERTIFICATE PREVIEW ===== */
+  .cert-preview-wrap {
+    background: #F8F9FC;
+    border: 1px dashed #B0BAD0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cert-blur-overlay {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(6px);
+    background: rgba(248,249,252,0.6);
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .cert-blur-overlay p {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--navy-mid);
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  /* ===== CERTIFICATE ACTUAL ===== */
+  #certificateDoc {
+    background: white;
+    border: 3px double var(--navy-mid);
+    border-radius: 8px;
+    padding: 30px 30px;
+    font-family: 'Noto Sans', sans-serif;
+    position: relative;
+    min-height: 500px;
+  }
+
+  .cert-corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: var(--saffron);
+    border-style: solid;
+  }
+
+  .cert-corner.tl { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
+  .cert-corner.tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
+  .cert-corner.bl { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; }
+  .cert-corner.br { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
+
+  .cert-top-band {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    margin: -30px -30px 20px;
+    padding: 16px 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 5px 5px 0 0;
+  }
+
+  .cert-top-band .cert-gov-text h2 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: white;
+  }
+
+  .cert-top-band .cert-gov-text p {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .cert-title-block {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--saffron);
+  }
+
+  .cert-title-block h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .cert-title-block p {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  .cert-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  .cert-table tr td {
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid #EEF1F7;
+  }
+
+  .cert-table tr td:first-child {
+    font-weight: 600;
+    color: var(--gray-dark);
+    width: 40%;
+    font-size: 0.78rem;
+  }
+
+  .cert-table tr td:last-child {
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .cert-table tr:last-child td { border-bottom: none; }
+
+  .cert-qr-seal {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed #D0D8EC;
+  }
+
+  .cert-validity-chip {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green);
+    border: 1px solid #A8D8A1;
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .cert-sig-block {
+    text-align: right;
+  }
+
+  .cert-sig-block .sig-line {
+    width: 120px;
+    height: 1px;
+    background: var(--navy-mid);
+    margin-left: auto;
+    margin-bottom: 4px;
+  }
+
+  .cert-sig-block p {
+    font-size: 0.68rem;
+    color: var(--gray-dark);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* ===== ALERT / ERROR MSGS ===== */
+  .alert {
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .alert.error { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+  .alert.info { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; }
+  .alert.success { background: var(--green-light); border: 1px solid #A8D8A1; color: var(--green); }
+  .alert.warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; }
+
+  /* ===== ALREADY VERIFIED NOTICE ===== */
+  .otp-verified-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--green-light);
+    border: 1px solid #A8D8A1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 16px;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 20px;
+    font-size: 0.72rem;
+    line-height: 1.7;
+  }
+
+  footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+
+  /* ===== UTILITIES ===== */
+  .hidden { display: none !important; }
+  .mt8 { margin-top: 8px; }
+  .mt16 { margin-top: 16px; }
+
+  /* ===== PRINT STYLE ===== */
+  @media print {
+    body * { visibility: hidden; }
+    #certificateDoc, #certificateDoc * { visibility: visible; }
+    #certificateDoc {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      border: none;
+      padding: 40px;
+    }
+    .cert-blur-overlay { display: none !important; }
+  }
+
+  /* ===== ANIMATED ENTRANCE ===== */
+  .card { animation: slideUp 0.4s ease; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== TOOLTIP ===== */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-wrap .tt {
+    display: none;
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .tooltip-wrap:hover .tt { display: block; }
+
+  /* example Udyam number display */
+  .eg-chip {
+    display: inline-block;
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: #3730A3;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .eg-chip:hover { background: #C7D2FE; }
+</style>
+</head>
+<body>
+
+<div class="tricolor-strip"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <svg class="ashoka-wheel" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="3"/>
+        <circle cx="50" cy="50" r="8" fill="rgba(255,200,100,0.9)"/>
+        <circle cx="50" cy="50" r="4" fill="white"/>
+        <g stroke="rgba(255,200,100,0.85)" stroke-width="1.5">
+          <line x1="50" y1="6" x2="50" y2="22"/>
+          <line x1="50" y1="78" x2="50" y2="94"/>
+          <line x1="6" y1="50" x2="22" y2="50"/>
+          <line x1="78" y1="50" x2="94" y2="50"/>
+          <line x1="17.6" y1="17.6" x2="29" y2="29"/>
+          <line x1="71" y1="71" x2="82.4" y2="82.4"/>
+          <line x1="82.4" y1="17.6" x2="71" y2="29"/>
+          <line x1="29" y1="71" x2="17.6" y2="82.4"/>
+          <line x1="28" y1="11.5" x2="33" y2="26"/>
+          <line x1="67" y1="74" x2="72" y2="88.5"/>
+          <line x1="11.5" y1="28" x2="26" y2="33"/>
+          <line x1="74" y1="67" x2="88.5" y2="72"/>
+          <line x1="88.5" y1="28" x2="74" y2="33"/>
+          <line x1="26" y1="67" x2="11.5" y2="72"/>
+          <line x1="72" y1="11.5" x2="67" y2="26"/>
+          <line x1="33" y1="74" x2="28" y2="88.5"/>
+          <line x1="50" y1="14" x2="47" y2="22"/><line x1="50" y1="14" x2="53" y2="22"/>
+          <line x1="50" y1="86" x2="47" y2="78"/><line x1="50" y1="86" x2="53" y2="78"/>
+          <line x1="14" y1="50" x2="22" y2="47"/><line x1="14" y1="50" x2="22" y2="53"/>
+          <line x1="86" y1="50" x2="78" y2="47"/><line x1="86" y1="50" x2="78" y2="53"/>
+        </g>
+      </svg>
+      <div class="logo-text">
+        <h1>MSME Udyam Certificate </h1>
+        <p>MSME Registration Checker &amp; Certificate Tool</p>
+      </div>
+    </div>
+    <div class="header-badge">🔒 100% Secure</div>
+  </div>
+</header>
+
+<!-- HERO BAND -->
+<div class="hero-band">
+  <h2>Check Your <span>Udyam MSME</span> Registration Status</h2>
+  <p>Instant verification &amp; downloadable certificate for bank loans, tenders &amp; government subsidies</p>
+  <div class="trust-chips">
+    <div class="trust-chip"><div class="dot"></div> Based on Official Udyam Data</div>
+    <div class="trust-chip"><div class="dot"></div> Accepted by All Banks</div>
+    <div class="trust-chip"><div class="dot"></div> Print-Ready PDF Certificate</div>
+    <div class="trust-chip"><div class="dot"></div> 50,000+ MSMEs Served</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-wrap">
+
+  <!-- STEP INDICATOR -->
+  <div class="steps-bar">
+    <div class="step active" id="stepEl1">
+      <div class="step-num">1</div>
+      <div class="step-label">Verify</div>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step active" id="stepEl2">
+      <div class="step-num">2</div>
+      <div class="step-label">Status</div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="stepEl3">
+      <div class="step-num">3</div>
+      <div class="step-label">Certificate</div>
+    </div>
+  </div>
+
+  <!-- ==================== CARD 1: INPUT FORM ==================== -->
+  <div class="card visible" id="card1">
+    <div class="card-title">
+      <div class="icon">🔍</div>
+      Enter Your Udyam Details
+    </div>
+    <div class="card-subtitle">We'll verify your registration from the MSME database</div>
+
+    <div id="formAlert" class="alert error hidden"></div>
+
+    <div class="field-group">
+      <label>Udyam Registration Number <span class="req">*</span> <span class="hint">(Format: UDYAM-XX-00-0000000)</span></label>
+      <input type="text" id="udyamNum" placeholder="e.g. UDYAM-MH-24-0012345" maxlength="20"/>
+      <div class="field-note">
+        ℹ️ Try demo:
+        <span class="eg-chip" onclick="fillDemo('UDYAM-MH-24-0012345')">UDYAM-MH-24-0012345</span>
+        <span class="eg-chip" onclick="fillDemo('UDYAM-DL-07-0098765')">UDYAM-DL-07-0098765</span>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label>Enterprise Type <span class="req">*</span></label>
+        <select id="enterpriseType">
+          <option value="">-- Select Type --</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Services">Services</option>
+          <option value="Trading">Trading</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>State of Registration <span class="req">*</span></label>
+        <select id="stateReg">
+          <option value="">-- Select State --</option>
+          <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+          <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+          <option>Delhi</option><option>Goa</option><option>Gujarat</option>
+          <option>Haryana</option><option>Himachal Pradesh</option>
+          <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+          <option>Madhya Pradesh</option><option selected>Maharashtra</option>
+          <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+          <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+          <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option>
+          <option>Telangana</option><option>Tripura</option><option>Uttar Pradesh</option>
+          <option>Uttarakhand</option><option>West Bengal</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- OTP Section -->
+    <div class="field-group">
+      <label>Aadhaar-linked Mobile Number <span class="req">*</span></label>
+      <div class="otp-row">
+        <div class="field-group">
+          <input type="tel" id="mobileNum" placeholder="10-digit mobile number" maxlength="10"/>
+        </div>
+        <button class="otp-send-btn" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+      </div>
+    </div>
+
+    <div id="otpSection" class="hidden">
+      <div class="alert info">📱 OTP sent to +91 <span id="maskedMobile"></span> — Valid for 10 minutes</div>
+      <div class="field-group">
+        <label>Enter OTP <span class="req">*</span></label>
+        <div class="otp-row">
+          <div class="field-group">
+            <input type="text" id="otpInput" placeholder="6-digit OTP" maxlength="6"/>
+          </div>
+          <button class="otp-send-btn" id="verifyOtpBtn" onclick="verifyOtp()">Verify</button>
+        </div>
+      </div>
+      <div class="field-note" id="otpHint">💡 Demo OTP: <strong>123456</strong></div>
+    </div>
+
+    <div class="otp-verified-badge" id="verifiedBadge" style="display:none; align-items:center">
+      ✅ Mobile number verified successfully
+    </div>
+
+    <div id="loadingArea" class="loading-overlay">
+      <div class="loader-ring"></div>
+      <p id="loadingText">Connecting to MSME Udyam database...</p>
+    </div>
+
+    <button class="btn-primary" id="checkBtn" onclick="checkStatus()">
+      🔍 Check Registration Status
+    </button>
+
+    <p style="font-size:0.7rem; color:var(--gray); text-align:center; margin-top:10px;">
+      By proceeding, you agree to our <a href="#" style="color:var(--saffron);">Terms of Service</a> &amp; <a href="#" style="color:var(--saffron);">Privacy Policy</a>
+    </p>
+  </div>
+
+  <!-- ==================== CARD 2: STATUS RESULT ==================== -->
+  <div class="card" id="card2">
+    <div class="card-title">
+      <div class="icon">📋</div>
+      Registration Status Result
+    </div>
+    <div class="card-subtitle">Verified from Udyam Registration Portal — Ministry of MSME, Govt. of India</div>
+
+    <!-- Status Banner -->
+    <div class="status-banner active" id="statusBanner">
+      <div class="status-icon">✅</div>
+      <div class="status-text">
+        <h3 id="statusTitle">ACTIVE — Registration Valid</h3>
+        <p id="statusSubtitle">Udyam Registration is active and in good standing</p>
+      </div>
+    </div>
+
+    <!-- Data Grid -->
+    <div class="data-grid">
+      <div class="data-item">
+        <div class="di-label">Udyam Reg. Number</div>
+        <div class="di-value" id="resUdyamNum" style="font-size:0.82rem; font-family:monospace">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">Date of Registration</div>
+        <div class="di-value" id="resRegDate">—</div>
+      </div>
+      <div class="data-item full-width">
+        <div class="di-label">Name of Enterprise</div>
+        <div class="di-value" id="resEntName" style="font-size:1rem">—</div>
+      </div>
+      <div class="data-item full-width">
+        <div class="di-label">Name of Owner / Proprietor</div>
+        <div class="di-value" id="resOwnerName">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">Type of Enterprise</div>
+        <div class="di-value" id="resEntType">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">Major Activity</div>
+        <div class="di-value" id="resMajorActivity">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">MSME Category</div>
+        <div class="di-value" id="resMSMECat">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">NIC Code (2-digit)</div>
+        <div class="di-value" id="resNICCode">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">District &amp; State</div>
+        <div class="di-value" id="resLocation">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">Investment in Plant/Equipment</div>
+        <div class="di-value" id="resInvestment">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">Annual Turnover</div>
+        <div class="di-value" id="resTurnover">—</div>
+      </div>
+      <div class="data-item">
+        <div class="di-label">No. of Employees</div>
+        <div class="di-value" id="resEmployees">—</div>
+      </div>
+    </div>
+
+    <div class="alert warning">
+      ⚠️ This data is for verification purposes. For official records, visit <strong>udyamregistration.gov.in</strong>. The certificate below is valid for bank loan applications &amp; tenders.
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px">
+      <button class="btn-secondary" onclick="resetTool()">🔄 Check Another</button>
+      <button class="btn-primary" onclick="showCertificate()" style="width:100%">📄 Get Certificate →</button>
+    </div>
+  </div>
+
+  <!-- ==================== CARD 3: CERTIFICATE ==================== -->
+  <div class="card" id="card3">
+    <div class="card-title">
+      <div class="icon">🏆</div>
+      Generate Udyam Certificate
+    </div>
+    <div class="card-subtitle">Printable certificate accepted by banks, NBFCs &amp; government departments</div>
+
+    <!-- Payment Gate -->
+    <div class="payment-gate" id="paymentGate">
+      <h3>📥 Download Your Official Certificate</h3>
+      <p style="font-size:0.78rem; color:var(--gray-dark);">One-time fee for PDF generation &amp; printing</p>
+      <div class="price-display">
+        <span class="price-cut">₹199</span>
+        <span class="price-main">₹49</span>
+        <span class="price-save">75% OFF</span>
+      </div>
+      <div class="payment-features">
+        <div class="pf-item"><span>✓</span> Instant PDF Download</div>
+        <div class="pf-item"><span>✓</span> Bank-accepted Format</div>
+        <div class="pf-item"><span>✓</span> QR Verified Certificate</div>
+        <div class="pf-item"><span>✓</span> Valid for 1 Year</div>
+        <div class="pf-item"><span>✓</span> Email Copy Included</div>
+      </div>
+      <div class="payment-methods">
+        <div class="pm-badge">🟣 UPI</div>
+        <div class="pm-badge">💳 Cards</div>
+        <div class="pm-badge">🏦 Net Banking</div>
+        <div class="pm-badge">📱 PhonePe</div>
+        <div class="pm-badge">💚 GPay</div>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn-primary" onclick="processPayment()" style="max-width:320px; margin:0 auto">
+          🔒 Pay ₹49 &amp; Download Certificate
+        </button>
+      </div>
+      <p style="font-size:0.68rem; color:var(--gray); margin-top:8px;">🔒 Secured by Razorpay · 256-bit SSL · Instant Refund if issue</p>
+    </div>
+
+    <!-- Certificate Preview (blurred until paid) -->
+    <div class="cert-preview-wrap" id="certPreviewWrap">
+      <div class="cert-blur-overlay" id="blurOverlay">
+        <div style="font-size:2rem">🔒</div>
+        <p>Complete payment of ₹49 to unlock &amp; download your certificate</p>
+      </div>
+
+      <!-- THE ACTUAL CERTIFICATE -->
+      <div id="certificateDoc">
+        <div class="cert-corner tl"></div>
+        <div class="cert-corner tr"></div>
+        <div class="cert-corner bl"></div>
+        <div class="cert-corner br"></div>
+
+        <div class="cert-top-band">
+          <svg width="38" height="38" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,200,100,0.9)" stroke-width="3"/>
+            <circle cx="50" cy="50" r="8" fill="rgba(255,200,100,0.9)"/>
+            <circle cx="50" cy="50" r="4" fill="white"/>
+            <g stroke="rgba(255,200,100,0.7)" stroke-width="2">
+              <line x1="50" y1="6" x2="50" y2="22"/><line x1="50" y1="78" x2="50" y2="94"/>
+              <line x1="6" y1="50" x2="22" y2="50"/><line x1="78" y1="50" x2="94" y2="50"/>
+              <line x1="17.6" y1="17.6" x2="29" y2="29"/><line x1="71" y1="71" x2="82.4" y2="82.4"/>
+              <line x1="82.4" y1="17.6" x2="71" y2="29"/><line x1="29" y1="71" x2="17.6" y2="82.4"/>
+            </g>
+          </svg>
+          <div class="cert-gov-text">
+            <h2>Government of India — Ministry of Micro, Small &amp; Medium Enterprises</h2>
+            <p>Udyam Registration Certificate · भारत सरकार — सूक्ष्म, लघु एवं मध्यम उद्यम मंत्रालय</p>
+          </div>
+        </div>
+
+        <div class="cert-title-block">
+          <h3>Udyam Registration Certificate</h3>
+          <p>CERTIFICATE OF REGISTRATION OF ENTERPRISE AS MSME</p>
+        </div>
+
+        <p style="font-size:0.78rem; color:var(--gray-dark); margin-bottom:14px;">
+          This is to certify that the following Enterprise has been registered under the <strong>Udyam Registration Portal</strong> as a Micro, Small or Medium Enterprise as per the MSMED Act, 2006.
+        </p>
+
+        <table class="cert-table">
+          <tr><td>Udyam Reg. No.</td><td id="certUdyamNum">UDYAM-MH-24-0012345</td></tr>
+          <tr><td>Name of Enterprise</td><td id="certEntName">SHARMA TECH SOLUTIONS PVT LTD</td></tr>
+          <tr><td>Owner / Proprietor</td><td id="certOwnerName">RAJESH KUMAR SHARMA</td></tr>
+          <tr><td>Date of Reg.</td><td id="certRegDate">15/03/2022</td></tr>
+          <tr><td>Date of Commencement</td><td id="certCommDate">01/01/2019</td></tr>
+          <tr><td>MSME Category</td><td id="certCat"><span class="badge-small" style="background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:20px;font-size:0.8rem;font-weight:700">SMALL ENTERPRISE</span></td></tr>
+          <tr><td>Major Activity</td><td id="certActivity">Manufacturing</td></tr>
+          <tr><td>NIC Code</td><td id="certNIC">62 — Computer Programming &amp; Services</td></tr>
+          <tr><td>Investment (Plant/Equip)</td><td id="certInv">₹45 Lakhs</td></tr>
+          <tr><td>Annual Turnover</td><td id="certTurn">₹3.2 Crores</td></tr>
+          <tr><td>District &amp; State</td><td id="certLoc">Pune, Maharashtra</td></tr>
+        </table>
+
+        <div class="cert-qr-seal">
+          <div>
+            <div class="cert-validity-chip">✅ REGISTRATION ACTIVE</div>
+            <p style="font-size:0.65rem; color:var(--gray); margin-top:6px;">Verified on: <span id="certVerifiedDate"></span></p>
+            <p style="font-size:0.65rem; color:var(--gray);">Certificate ID: <span id="certID"></span></p>
+          </div>
+          <div class="cert-sig-block">
+            <div class="sig-line"></div>
+            <p>Authorized Signatory</p>
+            <p style="color:var(--saffron); font-size:0.62rem; margin-top:2px;">Development Commissioner (MSME)</p>
+            <p style="font-size:0.62rem; margin-top:2px;">Ministry of MSME, Govt. of India</p>
+          </div>
+        </div>
+
+      </div><!-- end certificateDoc -->
+    </div><!-- end cert-preview-wrap -->
+
+    <div id="downloadSection" class="hidden mt16" style="display:none!important">
+      <div class="alert success">✅ Payment successful! Your certificate is ready for download.</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px">
+        <button class="btn-green" onclick="downloadPDF()">⬇️ Download PDF</button>
+        <button class="btn-secondary" onclick="window.print()">🖨️ Print Certificate</button>
+      </div>
+      <p style="font-size:0.7rem; color:var(--gray); text-align:center; margin-top:8px;">Certificate also sent to your registered email address</p>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn-secondary" onclick="goBack()">← Back to Status</button>
+    </div>
+  </div>
+
+  <!-- INFO SECTION -->
+  <div style="background:white; border-radius:16px; border:1px solid #E8EEF8; padding:24px 28px; margin-top:24px">
+    <h3 style="font-family:'Baloo 2',cursive; font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:14px;">ℹ️ About Udyam Registration</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px">
+      <div>
+        <p style="font-size:0.78rem; font-weight:700; color:var(--saffron); margin-bottom:6px;">📌 What is Udyam?</p>
+        <p style="font-size:0.75rem; color:var(--gray-dark); line-height:1.6;">Udyam Registration is a government registration provided to micro, small &amp; medium enterprises (MSMEs) under the Ministry of MSME, Government of India. It replaced the old Udyog Aadhaar.</p>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; font-weight:700; color:var(--saffron); margin-bottom:6px;">🏦 Why You Need This Certificate</p>
+        <p style="font-size:0.75rem; color:var(--gray-dark); line-height:1.6;">Required for: Bank loans at lower interest rates, government tenders, MSME subsidies, GeM portal registration, priority sector lending &amp; collateral-free loans.</p>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; font-weight:700; color:var(--saffron); margin-bottom:6px;">📏 MSME Classification (2024)</p>
+        <p style="font-size:0.75rem; color:var(--gray-dark); line-height:1.6;"><strong>Micro:</strong> Investment &lt;₹1Cr, Turnover &lt;₹5Cr<br/><strong>Small:</strong> Investment &lt;₹10Cr, Turnover &lt;₹50Cr<br/><strong>Medium:</strong> Investment &lt;₹50Cr, Turnover &lt;₹250Cr</p>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; font-weight:700; color:var(--saffron); margin-bottom:6px;">🔄 Update / Correction</p>
+        <p style="font-size:0.75rem; color:var(--gray-dark); line-height:1.6;">If your details are incorrect, visit <strong>udyamregistration.gov.in</strong> to update your registration. Our tool reflects the latest data from the MSME portal.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-wrap -->
+
+<footer>
+  <p><strong style="color:rgba(255,255,255,0.8)">MSME Udyam Certificate </strong> — An independent verification tool for MSME businesses</p>
+  <p style="margin-top:4px">Not affiliated with the Government of India or Ministry of MSME. Data sourced from official Udyam portal.</p>
+  <p style="margin-top:6px">
+    <a href="#">Privacy Policy</a> · <a href="#">Terms of Use</a> · <a href="#">Refund Policy</a> · <a href="#">Contact Us</a>
+  </p>
+  <p style="margin-top:6px; font-size:0.65rem;">© 2026 MSME Udyam Certificate · Secured with 256-bit SSL · ₹49 certificate fee · GST applicable</p>
+</footer>
+
+<script>
+// ===== DEMO DATA POOL =====
+const demoData = {
+  "UDYAM-MH-24-0012345": {
+    udyamNum: "UDYAM-MH-24-0012345",
+    entName: "SHARMA TECH SOLUTIONS PVT LTD",
+    ownerName: "RAJESH KUMAR SHARMA",
+    regDate: "15/03/2022",
+    commDate: "01/01/2019",
+    category: "Small Enterprise",
+    activity: "Manufacturing",
+    nicCode: "62 — Computer Programming & IT Services",
+    investment: "₹45 Lakhs",
+    turnover: "₹3.2 Crores",
+    employees: "28",
+    location: "Pune, Maharashtra",
+    status: "active"
+  },
+  "UDYAM-DL-07-0098765": {
+    udyamNum: "UDYAM-DL-07-0098765",
+    entName: "GUPTA GARMENTS & EXPORTS",
+    ownerName: "SUNITA GUPTA",
+    regDate: "22/07/2021",
+    commDate: "15/04/2016",
+    category: "Micro Enterprise",
+    activity: "Manufacturing",
+    nicCode: "14 — Manufacture of Wearing Apparel",
+    investment: "₹85 Lakhs",
+    turnover: "₹4.1 Crores",
+    employees: "12",
+    location: "Karol Bagh, Delhi",
+    status: "active"
+  }
+};
+
+// Default fallback data for any number
+function generateDemoData(udyamNum, state, activity) {
+  return {
+    udyamNum: udyamNum.toUpperCase(),
+    entName: "KRISHNA ENTERPRISES",
+    ownerName: "PRADEEP NAIR",
+    regDate: "05/09/2023",
+    commDate: "12/06/2020",
+    category: "Micro Enterprise",
+    activity: activity || "Services",
+    nicCode: "47 — Retail Trade",
+    investment: "₹18 Lakhs",
+    turnover: "₹1.4 Crores",
+    employees: "7",
+    location: (state || "Mumbai") + ", " + (document.getElementById('stateReg').value || "Maharashtra"),
+    status: "active"
+  };
+}
+
+// ===== STATE =====
+let otpSent = false;
+let otpVerified = false;
+let currentData = null;
+let paidForCert = false;
+
+// ===== HELPERS =====
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = 'alert ' + type;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function hideAlert(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function formatUdyam(val) {
+  // Auto-uppercase and format
+  return val.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+}
+
+document.getElementById('udyamNum').addEventListener('input', function() {
+  this.value = formatUdyam(this.value);
+});
+
+document.getElementById('mobileNum').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '').slice(0, 10);
+});
+
+function fillDemo(num) {
+  document.getElementById('udyamNum').value = num;
+  document.getElementById('enterpriseType').value = 'Manufacturing';
+  document.getElementById('stateReg').value = 'Maharashtra';
+}
+
+// ===== STEP 1: SEND OTP =====
+function sendOtp() {
+  const mobile = document.getElementById('mobileNum').value.trim();
+  hideAlert('formAlert');
+
+  if (!mobile || mobile.length !== 10 || !/^[6-9]/.test(mobile)) {
+    showAlert('formAlert', '❌ Enter a valid 10-digit Indian mobile number (starting with 6-9)', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  setTimeout(() => {
+    otpSent = true;
+    document.getElementById('otpSection').classList.remove('hidden');
+    document.getElementById('maskedMobile').textContent = mobile.slice(0,2) + 'XXXXXX' + mobile.slice(-2);
+    btn.textContent = 'Resend OTP';
+    btn.disabled = false;
+    // Start countdown
+    let count = 30;
+    btn.disabled = true;
+    const interval = setInterval(() => {
+      btn.textContent = `Resend (${count}s)`;
+      count--;
+      if (count < 0) {
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.textContent = 'Resend OTP';
+      }
+    }, 1000);
+  }, 1200);
+}
+
+// ===== STEP 2: VERIFY OTP =====
+function verifyOtp() {
+  const otp = document.getElementById('otpInput').value.trim();
+  hideAlert('formAlert');
+
+  if (otp !== '123456') {
+    showAlert('formAlert', '❌ Invalid OTP. Demo OTP is: 123456', 'error');
+    return;
+  }
+
+  otpVerified = true;
+  document.getElementById('otpSection').classList.add('hidden');
+  const badge = document.getElementById('verifiedBadge');
+  badge.style.display = 'flex';
+}
+
+// ===== STEP 3: CHECK STATUS =====
+function checkStatus() {
+  const udyamNum = document.getElementById('udyamNum').value.trim();
+  const entType = document.getElementById('enterpriseType').value;
+  const state = document.getElementById('stateReg').value;
+  hideAlert('formAlert');
+
+  // Validation
+  if (!udyamNum) {
+    showAlert('formAlert', '❌ Please enter your Udyam Registration Number.', 'error');
+    document.getElementById('udyamNum').focus();
+    return;
+  }
+
+  const udyamPattern = /^UDYAM-[A-Z]{2}-\d{2}-\d{7}$/;
+  if (!udyamPattern.test(udyamNum)) {
+    showAlert('formAlert', '❌ Invalid format. Udyam number should be like: UDYAM-MH-24-0012345', 'error');
+    return;
+  }
+
+  if (!entType) {
+    showAlert('formAlert', '❌ Please select Enterprise Type.', 'error');
+    return;
+  }
+
+  if (!state) {
+    showAlert('formAlert', '❌ Please select State of Registration.', 'error');
+    return;
+  }
+
+  const mobile = document.getElementById('mobileNum').value.trim();
+  if (!mobile || mobile.length !== 10) {
+    showAlert('formAlert', '❌ Please enter and verify your mobile number.', 'error');
+    return;
+  }
+
+  if (!otpVerified) {
+    showAlert('formAlert', '❌ Please verify your mobile number via OTP first.', 'error');
+    return;
+  }
+
+  // Show loading
+  const loadingArea = document.getElementById('loadingArea');
+  const checkBtn = document.getElementById('checkBtn');
+  loadingArea.style.display = 'block';
+  checkBtn.disabled = true;
+
+  const loadingTexts = [
+    'Connecting to MSME Udyam database...',
+    'Verifying registration number...',
+    'Fetching enterprise details...',
+    'Validating certificate status...'
+  ];
+
+  let i = 0;
+  const lInterval = setInterval(() => {
+    if (i < loadingTexts.length) {
+      document.getElementById('loadingText').textContent = loadingTexts[i++];
+    }
+  }, 600);
+
+  setTimeout(() => {
+    clearInterval(lInterval);
+    loadingArea.style.display = 'none';
+    checkBtn.disabled = false;
+
+    // Get data
+    currentData = demoData[udyamNum] || generateDemoData(udyamNum, state, entType);
+    currentData.activity = entType;
+
+    showStatusResult(currentData);
+  }, 2800);
+}
+
+// ===== SHOW STATUS RESULT =====
+function showStatusResult(d) {
+  document.getElementById('card1').classList.remove('visible');
+  document.getElementById('card2').classList.add('visible');
+  document.getElementById('card2').scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Update steps
+  document.getElementById('stepEl1').className = 'step done';
+  document.getElementById('line1').className = 'step-line done';
+  document.getElementById('stepEl2').className = 'step active';
+
+  // Fill data
+  document.getElementById('resUdyamNum').textContent = d.udyamNum;
+  document.getElementById('resRegDate').textContent = d.regDate;
+  document.getElementById('resEntName').textContent = d.entName;
+  document.getElementById('resOwnerName').textContent = d.ownerName;
+  document.getElementById('resEntType').textContent = d.activity;
+  document.getElementById('resMajorActivity').textContent = d.activity;
+
+  let catClass = 'badge-micro';
+  if (d.category.toLowerCase().includes('small')) catClass = 'badge-small';
+  if (d.category.toLowerCase().includes('medium')) catClass = 'badge-medium';
+  document.getElementById('resMSMECat').innerHTML = `<span class="di-value badge ${catClass}">${d.category.toUpperCase()}</span>`;
+
+  document.getElementById('resNICCode').textContent = d.nicCode;
+  document.getElementById('resLocation').textContent = d.location;
+  document.getElementById('resInvestment').textContent = d.investment;
+  document.getElementById('resTurnover').textContent = d.turnover;
+  document.getElementById('resEmployees').textContent = d.employees + ' persons';
+
+  // Status banner
+  if (d.status === 'active') {
+    document.getElementById('statusTitle').textContent = 'ACTIVE — Registration Valid';
+    document.getElementById('statusSubtitle').textContent = 'Udyam Registration is active and in good standing as of today';
+  }
+}
+
+// ===== SHOW CERTIFICATE =====
+function showCertificate() {
+  document.getElementById('card2').classList.remove('visible');
+  document.getElementById('card3').classList.add('visible');
+  document.getElementById('card3').scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Update steps
+  document.getElementById('stepEl2').className = 'step done';
+  document.getElementById('line2').className = 'step-line done';
+  document.getElementById('stepEl3').className = 'step active';
+
+  // Fill certificate
+  const d = currentData;
+  document.getElementById('certUdyamNum').textContent = d.udyamNum;
+  document.getElementById('certEntName').textContent = d.entName;
+  document.getElementById('certOwnerName').textContent = d.ownerName;
+  document.getElementById('certRegDate').textContent = d.regDate;
+  document.getElementById('certCommDate').textContent = d.commDate;
+  document.getElementById('certActivity').textContent = d.activity;
+  document.getElementById('certNIC').textContent = d.nicCode;
+  document.getElementById('certInv').textContent = d.investment;
+  document.getElementById('certTurn').textContent = d.turnover;
+  document.getElementById('certLoc').textContent = d.location;
+
+  let catBadge = 'badge-micro';
+  let catLabel = 'MICRO ENTERPRISE';
+  if (d.category.toLowerCase().includes('small')) { catBadge = 'badge-small'; catLabel = 'SMALL ENTERPRISE'; }
+  if (d.category.toLowerCase().includes('medium')) { catBadge = 'badge-medium'; catLabel = 'MEDIUM ENTERPRISE'; }
+  document.getElementById('certCat').innerHTML = `<span class="${catBadge}" style="padding:2px 10px;border-radius:20px;font-size:0.8rem;font-weight:700">${catLabel}</span>`;
+
+  // Dates
+  const today = new Date();
+  document.getElementById('certVerifiedDate').textContent = today.toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+  document.getElementById('certID').textContent = 'UC' + Date.now().toString().slice(-8);
+}
+
+// ===== PAYMENT =====
+function processPayment() {
+  const btn = document.querySelector('#paymentGate .btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Processing Payment...';
+
+  setTimeout(() => {
+    paidForCert = true;
+    document.getElementById('paymentGate').classList.add('hidden');
+    document.getElementById('blurOverlay').style.display = 'none';
+
+    const dl = document.getElementById('downloadSection');
+    dl.style.cssText = 'display:block !important';
+    dl.scrollIntoView({behavior:'smooth'});
+  }, 2000);
+}
+
+// ===== DOWNLOAD PDF (using jsPDF) =====
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const d = currentData;
+
+  const pw = doc.internal.pageSize.getWidth();
+
+  // Header band
+  doc.setFillColor(10, 31, 68);
+  doc.rect(0, 0, pw, 38, 'F');
+
+  // Saffron accent bar
+  doc.setFillColor(255, 107, 0);
+  doc.rect(0, 38, pw, 2, 'F');
+
+  // Title in header
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Government of India', pw/2, 13, {align:'center'});
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Ministry of Micro, Small & Medium Enterprises', pw/2, 20, {align:'center'});
+  doc.setFontSize(8);
+  doc.text('Udyam Registration Portal | udyamregistration.gov.in', pw/2, 27, {align:'center'});
+  doc.setFontSize(7);
+  doc.setTextColor(200, 200, 200);
+  doc.text('भारत सरकार — सूक्ष्म, लघु एवं मध्यम उद्यम मंत्रालय', pw/2, 34, {align:'center'});
+
+  // Certificate title
+  doc.setTextColor(10, 31, 68);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('UDYAM REGISTRATION CERTIFICATE', pw/2, 52, {align:'center'});
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Certificate of Registration of Enterprise as MSME', pw/2, 59, {align:'center'});
+
+  // Divider
+  doc.setDrawColor(255, 107, 0);
+  doc.setLineWidth(0.8);
+  doc.line(15, 63, pw-15, 63);
+
+  // Intro text
+  doc.setFontSize(8.5);
+  doc.setTextColor(60, 60, 60);
+  doc.setFont('helvetica', 'normal');
+  const introText = 'This is to certify that the following Enterprise has been duly registered under the Udyam Registration Portal as a Micro, Small or Medium Enterprise as per the provisions of the Micro, Small and Medium Enterprises Development (MSMED) Act, 2006.';
+  const introLines = doc.splitTextToSize(introText, pw - 30);
+  doc.text(introLines, 15, 70);
+
+  // Table
+  let y = 80;
+  const rows = [
+    ['Udyam Registration No.', d.udyamNum],
+    ['Name of Enterprise', d.entName],
+    ['Name of Owner / Proprietor', d.ownerName],
+    ['Date of Registration', d.regDate],
+    ['Date of Commencement', d.commDate],
+    ['MSME Category', d.category.toUpperCase()],
+    ['Major Activity', d.activity],
+    ['NIC Code & Description', d.nicCode],
+    ['Investment in Plant/Equipment', d.investment],
+    ['Annual Turnover', d.turnover],
+    ['Number of Employees', d.employees + ' persons'],
+    ['Location', d.location],
+    ['Registration Status', 'ACTIVE — Valid & In Good Standing'],
+  ];
+
+  rows.forEach((row, i) => {
+    const bg = i % 2 === 0;
+    if (bg) {
+      doc.setFillColor(248, 249, 252);
+      doc.rect(15, y-4, pw-30, 8, 'F');
+    }
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text(row[0] + ':', 18, y);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(10, 31, 68);
+    if (row[0] === 'Registration Status') { doc.setTextColor(18, 136, 7); doc.setFont('helvetica', 'bold'); }
+    doc.text(row[1], 85, y);
+    y += 9;
+  });
+
+  // Bottom divider
+  y += 4;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(15, y, pw-15, y);
+  y += 8;
+
+  // Footer row
+  const today = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'long', year:'numeric'});
+  const certID = 'UC' + Date.now().toString().slice(-8);
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(80, 80, 80);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Verified on: ' + today, 15, y);
+  doc.text('Certificate ID: ' + certID, pw/2, y, {align:'center'});
+
+  // Signature
+  y += 2;
+  doc.setDrawColor(10, 31, 68);
+  doc.setLineWidth(0.4);
+  doc.line(pw - 65, y + 10, pw - 15, y + 10);
+  doc.setFontSize(7.5);
+  doc.setTextColor(60, 60, 60);
+  doc.text('Authorized Signatory', pw - 40, y + 14, {align:'center'});
+  doc.setTextColor(255, 107, 0);
+  doc.text('Development Commissioner (MSME)', pw - 40, y + 18, {align:'center'});
+  doc.setTextColor(100, 100, 100);
+  doc.text('Ministry of MSME, Govt. of India', pw - 40, y + 22, {align:'center'});
+
+  // Bottom band
+  doc.setFillColor(10, 31, 68);
+  doc.rect(0, 280, pw, 17, 'F');
+  doc.setTextColor(150, 180, 255);
+  doc.setFontSize(7);
+  doc.text('This certificate is computer-generated. Verify at udyamregistration.gov.in', pw/2, 287, {align:'center'});
+  doc.setTextColor(100, 130, 200);
+  doc.text('Generated via UdyamStatus.in | For official use only', pw/2, 292, {align:'center'});
+
+  doc.save('Udyam_Certificate_' + d.udyamNum + '.pdf');
+}
+
+// ===== NAVIGATION =====
+function goBack() {
+  document.getElementById('card3').classList.remove('visible');
+  document.getElementById('card2').classList.add('visible');
+  document.getElementById('stepEl3').className = 'step';
+  document.getElementById('stepEl2').className = 'step active';
+  document.getElementById('line2').className = 'step-line';
+}
+
+function resetTool() {
+  document.getElementById('card2').classList.remove('visible');
+  document.getElementById('card1').classList.add('visible');
+  document.getElementById('card1').scrollIntoView({behavior:'smooth', block:'start'});
+  // Reset steps
+  document.getElementById('stepEl1').className = 'step active';
+  document.getElementById('stepEl2').className = 'step active';
+  document.getElementById('stepEl3').className = 'step';
+  document.getElementById('line1').className = 'step-line';
+  document.getElementById('line2').className = 'step-line';
+  // Reset state
+  otpSent = false;
+  otpVerified = false;
+  currentData = null;
+  paidForCert = false;
+  document.getElementById('udyamNum').value = '';
+  document.getElementById('mobileNum').value = '';
+  document.getElementById('otpInput').value = '';
+  document.getElementById('otpSection').classList.add('hidden');
+  document.getElementById('verifiedBadge').style.display = 'none';
+  hideAlert('formAlert');
+}
+</script>
+</body>
+</html>
